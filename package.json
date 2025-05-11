@@ -2,10 +2,11 @@
   "name": "app-oracao",
   "version": "1.0.0",
   "description": "Aplicativo de acolhimento espiritual com respostas em áudio",
-  "main": "app.js",
+  "main": "app.mjs",
+  "type": "module",
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js",
+    "start": "node app.mjs",
+    "dev": "nodemon app.mjs",
     "vercel-build": "echo 'Vercel build step'"
   },
   "keywords": [
@@ -18,7 +19,6 @@
   ],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",

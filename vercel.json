@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "app.js",
+      "src": "app.mjs",
       "use": "@vercel/node"
     },
     {
@@ -13,12 +13,12 @@
   "routes": [
     {
       "src": "/enviar-texto",
-      "dest": "app.js",
+      "dest": "app.mjs",
       "methods": ["POST", "OPTIONS"]
     },
     {
       "src": "/enviar-audio",
-      "dest": "app.js",
+      "dest": "app.mjs",
       "methods": ["POST", "OPTIONS"]
     },
     {
@@ -35,7 +35,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "app.js"
+      "dest": "app.mjs"
     }
   ],
   "env": {
