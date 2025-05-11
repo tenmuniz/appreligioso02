@@ -48,13 +48,20 @@ app.use(express.json());
 app.use(express.static(publicPath));
 app.use(cors({
   origin: '*', // Permite todas as origens em desenvolvimento
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
 }));
+
+// Adicionar suporte para preflight requests
+app.options('*', cors());
 
 // Log de requisições para debug
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.path}`);
+  console.log('Headers:', req.headers);
+  if (req.method === 'POST') {
+    console.log('Body:', req.body);
+  }
   next();
 });
 
@@ -126,7 +133,11 @@ async function gerarAudio(texto) {
     fs.writeFileSync(audioFilePath, buffer);
     console.log(`Áudio gerado e salvo em: ${audioFilePath}`);
     
-    return `/audio/${audioFileName}`;
+    // Garantir que o caminho seja relativo e não contenha barras duplas
+    const audioUrl = `/audio/${audioFileName}`;
+    console.log('URL de áudio gerada:', audioUrl);
+    
+    return audioUrl;
   } catch (error) {
     console.error('Erro ao gerar áudio:', error);
     throw new Error(`Falha ao gerar áudio: ${error.message}`);

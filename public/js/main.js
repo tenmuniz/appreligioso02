@@ -38,17 +38,22 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch('/enviar-texto', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
             body: JSON.stringify({ mensagem: mensagem })
         })
         .then(response => {
+            console.log('Status da resposta:', response.status);
             if (!response.ok) {
-                throw new Error('Erro ao enviar mensagem');
+                return response.json().then(err => {
+                    throw new Error(err.erro || 'Erro ao enviar mensagem');
+                });
             }
             return response.json();
         })
         .then(data => {
+            console.log('Dados recebidos:', data);
             displayResponse(data.mensagem);
             prayerAudio.src = data.audio;
             setupShareButtons(data.mensagem);
@@ -56,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('Erro:', error);
-            alert('Ocorreu um erro ao processar sua mensagem. Por favor, tente novamente.');
+            alert('Ocorreu um erro ao processar sua mensagem: ' + error.message);
             resetUI();
         });
     });
@@ -139,9 +144,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         fetch('/enviar-audio', {
             method: 'POST',
+            headers: {
+                'Accept': 'application/json'
+            },
             body: formData
         })
         .then(response => {
+            console.log('Status da resposta:', response.status);
             if (!response.ok) {
                 return response.json().then(err => {
                     throw new Error('Erro ao enviar áudio: ' + (err.detalhes || err.erro || 'Erro desconhecido'));
@@ -150,6 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return response.json();
         })
         .then(data => {
+            console.log('Dados recebidos:', data);
             displayResponse(data.mensagem);
             prayerAudio.src = data.audio;
             setupShareButtons(data.mensagem);
