@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acolhimento Espiritual</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <style>
+        :root {
+            --primary: #8b5fbf;
+            --primary-light: #a57edb;
+            --primary-dark: #6a4a9c;
+            --accent: #e6c678;
+            --secondary: #f6f2ff;
+            --text-dark: #2c3e50;
+            --text-light: #7f8c8d;
+            --white: #ffffff;
+            --shadow: 0 10px 30px rgba(139, 95, 191, 0.15);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Lato', sans-serif;
+            background: linear-gradient(135deg, #f1edf7 0%, #e8e0f7 100%);
+            color: var(--text-dark);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-top: 30px;
+        }
+        
+        h1 {
+            color: var(--primary-dark);
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: 1px;
+            position: relative;
+            display: inline-block;
+            font-family: 'Cinzel', serif;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(139,95,191,0), rgba(139,95,191,1), rgba(139,95,191,0));
+        }
+        
+        .subtitle {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 20px auto 0;
+        }
+        
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .card {
+            background: var(--white);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            height: 100%;
+            position: relative;
+            border: 1px solid rgba(139, 95, 191, 0.1);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(139, 95, 191, 0.2);
+        }
+        
+        .card-header {
+            padding: 20px 25px;
+            background: linear-gradient(145deg, var(--primary), var(--primary-dark));
+            color: var(--white);
+            border-radius: 16px 16px 0 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(45deg);
+        }
+        
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            font-family: 'Cinzel', serif;
+        }
+        
+        .card-title i {
+            margin-right: 10px;
+            font-size: 1.4rem;
+        }
+        
+        .card-body {
+            padding: 25px;
+        }
+        
+        .message-form textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 1px solid #e1e5eb;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            resize: none;
+            margin-bottom: 20px;
+            transition: var(--transition);
+            color: var(--text-dark);
+        }
+        
+        .message-form textarea:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(139, 95, 191, 0.1);
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px 0;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(to right, var(--primary), var(--primary-dark));
+            color: var(--white);
+        }
+        
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.3);
+            top: -50px;
+            left: -100px;
+            transform: rotate(30deg);
+            transition: transform 0.6s ease;
+        }
+        
+        .btn-primary:hover::after {
+            transform: translateX(300px) rotate(30deg);
+        }
+        
+        .btn-secondary {
+            background: rgba(139, 95, 191, 0.1);
+            color: var(--primary);
+            margin-top: 12px;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(139, 95, 191, 0.2);
+        }
+        
+        .or-divider {
+            text-align: center;
+            position: relative;
+            margin: 20px 0;
+            color: var(--text-light);
+        }
+        
+        .or-divider::before,
+        .or-divider::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 45%;
+            height: 1px;
+            background: #e1e5eb;
+        }
+        
+        .or-divider::before {
+            left: 0;
+        }
+        
+        .or-divider::after {
+            right: 0;
+        }
+        
+        .voice-options {
+            margin-top: 20px;
+        }
+        
+        .voice-label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+        
+        .response-card {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            justify-content: center;
+        }
+        
+        .response-placeholder {
+            text-align: center;
+            padding: 30px 0;
+        }
+        
+        .response-icon {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .response-icon::after {
+            content: '';
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: rgba(139, 95, 191, 0.1);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+            animation: pulse 2s infinite ease-in-out;
+        }
+        
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+            50% { transform: translate(-50%, -50%) scale(1.5); opacity: 0.3; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+        }
+        
+        .response-text {
+            color: var(--text-light);
+        }
+        
+        .response-message {
+            background: rgba(139, 95, 191, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .floating-shapes {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.05;
+            border-radius: 50%;
+        }
+
+        .shape-1 {
+            width: 200px;
+            height: 200px;
+            background: var(--primary);
+            top: 10%;
+            left: 5%;
+            animation: float-slow 15s ease-in-out infinite;
+        }
+
+        .shape-2 {
+            width: 300px;
+            height: 300px;
+            background: var(--primary-light);
+            bottom: 5%;
+            right: 5%;
+            animation: float-medium 12s ease-in-out infinite;
+        }
+
+        .shape-3 {
+            width: 150px;
+            height: 150px;
+            background: var(--primary);
+            top: 60%;
+            left: 15%;
+            animation: float-fast 10s ease-in-out infinite;
+        }
+
+        .shape-4 {
+            width: 100px;
+            height: 100px;
+            background: var(--primary-light);
+            top: 20%;
+            right: 15%;
+            animation: float-medium 14s ease-in-out infinite reverse;
+        }
+
+        .hero-image {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -40%);
+            width: 250px;
+            height: 250px;
+            z-index: -1;
+            opacity: 0.15;
+        }
+
+        .prayer-quote {
+            text-align: center;
+            margin: 40px auto;
+            max-width: 700px;
+            font-style: italic;
+            color: var(--text-light);
+            position: relative;
+            padding: 20px;
+            font-family: 'Cinzel', serif;
+            line-height: 1.8;
+        }
+
+        .prayer-quote::before, 
+        .prayer-quote::after {
+            content: '"';
+            font-size: 3rem;
+            position: absolute;
+            color: rgba(139, 95, 191, 0.2);
+            font-family: Georgia, serif;
+        }
+
+        .prayer-quote::before {
+            top: -20px;
+            left: 0;
+        }
+
+        .prayer-quote::after {
+            bottom: -40px;
+            right: 0;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 1;
+            border-top: 1px solid rgba(139, 95, 191, 0.1);
+        }
+
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f1edf7 0%, #e8e0f7 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .loading-icon {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .loading-circle {
+            width: 100%;
+            height: 100%;
+            border: 4px solid rgba(139, 95, 191, 0.1);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            color: var(--primary-dark);
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            font-family: 'Cinzel', serif;
+        }
+
+        .religious-symbol {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .religious-symbol i {
+            font-size: 2.5rem;
+            color: var(--accent);
+        }
+
+        .holy-verse {
+            background-color: var(--secondary);
+            padding: 15px;
+            border-radius: 12px;
+            border-left: 3px solid var(--accent);
+            margin: 20px 0;
+            font-style: italic;
+            color: var(--primary-dark);
+            position: relative;
+        }
+
+        .holy-verse::before {
+            content: '✝';
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            background: var(--secondary);
+            color: var(--accent);
+            padding: 0 10px;
+            font-size: 1.2rem;
+        }
+
+        /* Animations */
+        @keyframes float-slow {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-20px, 20px); }
+        }
+
+        @keyframes float-medium {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(20px, -20px); }
+        }
+
+        @keyframes float-fast {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-15px, -15px); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .response-icon {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .recording-animation {
+            position: relative;
+        }
+        
+        .recording-animation::after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+            top: 50%;
+            left: -15px;
+            transform: translateY(-50%);
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .prayer-quote {
+                font-size: 0.9rem;
+                padding: 10px;
+            }
+            
+            .prayer-quote::before, 
+            .prayer-quote::after {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loading-screen">
+        <div class="loading-icon">
+            <div class="loading-circle"></div>
+        </div>
+        <div class="loading-text">Preparando seu momento de fé e acolhimento...</div>
+    </div>
+
+    <div class="floating-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+        <div class="shape shape-4"></div>
+        <img src="https://pixabay.com/get/ge9cb9b112987bb6830244adb08a017f4d624077e6657d668a5cda5bc91aeeaf3e376581b22829d023c019f5784a99f5be49f2e0ca811d06f957b132dd320652d_1280.jpg" alt="Holy Bible with Cross" class="hero-image">
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="religious-symbol">
+                <i class="fas fa-cross"></i>
+            </div>
+            <h1>Acolhimento Espiritual</h1>
+            <p class="subtitle">Compartilhe sua angústia e receba palavras de conforto e uma oração personalizada</p>
+        </header>
+
+        <div class="holy-verse">
+            "Vinde a mim todos vós que estais cansados e oprimidos, e eu vos aliviarei." - Mateus 11:28
+        </div>
+
+        <div class="prayer-quote">
+            A oração é o refúgio da alma, uma conexão divina que nos fortalece nos momentos de fraqueza e nos ilumina em tempos de escuridão. Pela fé, encontramos consolo e esperança.
+        </div>
+
+        <div class="cards-container">
+            <div class="card" id="message-card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-praying-hands"></i> Envie sua mensagem</h2>
+                </div>
+                <div class="card-body">
+                    <form class="message-form">
+                        <textarea id="message-input" placeholder="Compartilhe o que está em seu coração..."></textarea>
+                        <button class="btn btn-primary" type="button" id="send-text-btn">
+                            <i class="fas fa-paper-plane"></i> Enviar Mensagem
+                        </button>
+                    </form>
+
+                    <div class="or-divider">ou</div>
+
+                    <div class="voice-options">
+                        <span class="voice-label">Envie uma mensagem de voz:</span>
+                        <button class="btn btn-primary" type="button" id="send-audio-btn">
+                            <i class="fas fa-microphone"></i> Enviar Áudio
+                        </button>
+                        <input type="file" id="audio-file" accept="audio/*" style="display:none;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" id="response-card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-bible"></i> Mensagem de Acolhimento</h2>
+                </div>
+                <div class="card-body response-card">
+                    <div class="response-placeholder" id="response-placeholder">
+                        <div class="response-icon">
+                            <i class="fas fa-dove"></i>
+                        </div>
+                        <p class="response-text">Envie sua mensagem para receber palavras de conforto e acolhimento espiritual</p>
+                    </div>
+                    <div id="response-content" style="display:none;">
+                        <div class="response-message" id="response-message">
+                            <!-- Response will be displayed here -->
+                        </div>
+                        <button class="btn btn-primary" id="play-prayer-btn">
+                            <i class="fas fa-volume-up"></i> Ouvir Oração Personalizada
+                        </button>
+                        <audio id="prayer-audio" style="display:none;"></audio>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2023 Acolhimento Espiritual | Conectando corações através da fé, oração e da palavra sagrada</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Loading screen
+            setTimeout(function() {
+                const loadingScreen = document.getElementById('loading-screen');
+                loadingScreen.style.opacity = '0';
+                setTimeout(function() {
+                    loadingScreen.style.display = 'none';
+                }, 500);
+            }, 1500);
+
+            // Animation for cards on page load
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 300 + (index * 200));
+            });
+
+            // Elements
+            const messageInput = document.getElementById('message-input');
+            const sendTextBtn = document.getElementById('send-text-btn');
+            const audioFileInput = document.getElementById('audio-file');
+            const sendAudioBtn = document.getElementById('send-audio-btn');
+            const responsePlaceholder = document.getElementById('response-placeholder');
+            const responseContent = document.getElementById('response-content');
+            const responseMessage = document.getElementById('response-message');
+            const playPrayerBtn = document.getElementById('play-prayer-btn');
+            const prayerAudio = document.getElementById('prayer-audio');
+            
+            let mediaRecorder;
+            let audioChunks = [];
+            let isRecording = false;
+            let audioBlob = null;
+
+            // Send text message
+            sendTextBtn.addEventListener('click', function() {
+                const message = messageInput.value.trim();
+                if (!message) {
+                    alert('Por favor, escreva uma mensagem antes de enviar.');
+                    return;
+                }
+                
+                // Simulate API call
+                simulateLoading();
+                setTimeout(() => {
+                    const response = "Querido irmão/irmã em Cristo, suas palavras encontram eco em nossos corações. Saiba que não está sozinho nesta jornada terrena. Em momentos de dificuldade, é natural sentirmos dúvidas e angústias, mas é também nesses momentos que a fé se fortalece e se renova.\n\nLembre-se das palavras sagradas: \"O Senhor é o meu pastor, nada me faltará\" (Salmos 23:1). Ele nunca lhe abandona, mesmo nos vales mais escuros. \n\nAqui está uma oração especial para você:\n\nSenhor Deus Todo-Poderoso, abençoe e guarde este seu filho que agora busca conforto em suas palavras. Ilumine seu caminho, restaure sua paz interior e renove suas forças. Que ele possa sentir Seu amor incondicional e Sua presença constante em cada passo. Através do poder do Espírito Santo, console seu coração e fortaleça sua fé. Em nome do Pai, do Filho e do Espírito Santo, amém.";
+                    displayResponse(response);
+                }, 2000);
+            });
+
+            // Send audio button click
+            sendAudioBtn.addEventListener('click', function() {
+                startRecording();
+                sendAudioBtn.innerHTML = '<i class="fas fa-stop"></i> Parar Gravação';
+                sendAudioBtn.classList.add('recording-animation');
+                
+                // After 3 seconds, automatically stop and process the recording
+                setTimeout(() => {
+                    if (isRecording) {
+                        stopRecording();
+                        sendAudioBtn.innerHTML = '<i class="fas fa-microphone"></i> Enviar Áudio';
+                        sendAudioBtn.classList.remove('recording-animation');
+                        
+                        // Process the audio
+                        simulateLoading();
+                        setTimeout(() => {
+                            const response = "Querido irmão/irmã em Cristo, obrigado por compartilhar seus sentimentos através da sua voz. Sua mensagem de áudio transmite não apenas palavras, mas também as emoções do seu coração. É importante expressar o que sentimos, e você deu esse passo corajoso.\n\nSaiba que suas preocupações foram ouvidas não apenas por nós, mas principalmente por Deus, que conhece cada detalhe do seu ser. Como nos diz a Sagrada Escritura: \"Antes mesmo de formá-lo no ventre de sua mãe, Eu o conheci\" (Jeremias 1:5).\n\nEm tempos de tribulação, lembre-se que a tempestade não dura para sempre, e que após a chuva, vem o arco-íris como promessa de renovação e aliança divina.\n\nAqui está uma oração para fortalecer seu espírito neste momento:\n\nPai Celestial, olha com compaixão para este filho que busca Tua presença. Acalma seu coração, dissipa suas dúvidas e renova sua fé. Que ele sinta o abraço do Teu amor e a segurança da Tua paz que excede todo entendimento. Guia seus passos e ilumine seu caminho com a luz da Tua palavra. Por intercessão de Nossa Senhora e de todos os santos, pedimos que abençoe e proteja este filho amado. Em nome do Pai, do Filho e do Espírito Santo, amém.";
+                            displayResponse(response);
+                        }, 2000);
+                    }
+                }, 3000);
+            });
+
+            // Send audio
+            sendAudioBtn.addEventListener('click', function() {
+                if (!audioBlob) {
+                    alert('Por favor, selecione ou grave um arquivo de áudio antes de enviar.');
+                    return;
+                }
+                
+                // Simulate API call
+                simulateLoading();
+                setTimeout(() => {
+                    const response = "Querido irmão/irmã em Cristo, obrigado por compartilhar seus sentimentos através da sua voz. Sua mensagem de áudio transmite não apenas palavras, mas também as emoções do seu coração. É importante expressar o que sentimos, e você deu esse passo corajoso.\n\nSaiba que suas preocupações foram ouvidas não apenas por nós, mas principalmente por Deus, que conhece cada detalhe do seu ser. Como nos diz a Sagrada Escritura: \"Antes mesmo de formá-lo no ventre de sua mãe, Eu o conheci\" (Jeremias 1:5).\n\nEm tempos de tribulação, lembre-se que a tempestade não dura para sempre, e que após a chuva, vem o arco-íris como promessa de renovação e aliança divina.\n\nAqui está uma oração para fortalecer seu espírito neste momento:\n\nPai Celestial, olha com compaixão para este filho que busca Tua presença. Acalma seu coração, dissipa suas dúvidas e renova sua fé. Que ele sinta o abraço do Teu amor e a segurança da Tua paz que excede todo entendimento. Guia seus passos e ilumine seu caminho com a luz da Tua palavra. Por intercessão de Nossa Senhora e de todos os santos, pedimos que abençoe e proteja este filho amado. Em nome do Pai, do Filho e do Espírito Santo, amém.";
+                    displayResponse(response);
+                }, 2000);
+            });
+
+            // Play prayer audio
+            playPrayerBtn.addEventListener('click', function() {
+                // Simulate audio playback
+                prayerAudio.src = "https://example.com/audio.mp3"; // Replace with actual audio path
+                prayerAudio.play()
+                    .catch(e => {
+                        console.log("Audio playback error or no audio file available");
+                        // In a real app, this would use the TTS response from the API
+                        alert('Desculpe, o áudio não está disponível neste momento.');
+                    });
+            });
+
+            // Helper functions
+            function startRecording() {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        mediaRecorder = new MediaRecorder(stream);
+                        audioChunks = [];
+                        
+                        mediaRecorder.addEventListener('dataavailable', e => {
+                            audioChunks.push(e.data);
+                        });
+                        
+                        mediaRecorder.addEventListener('stop', () => {
+                            audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                            sendAudioBtn.disabled = false;
+                        });
+                        
+                        mediaRecorder.start();
+                        isRecording = true;
+                    })
+                    .catch(error => {
+                        console.error('Erro ao acessar o microfone:', error);
+                        alert('Não foi possível acessar seu microfone. Verifique as permissões do navegador.');
+                    });
+            }
+
+            function stopRecording() {
+                if (mediaRecorder && isRecording) {
+                    mediaRecorder.stop();
+                    isRecording = false;
+                    
+                    // Stop the stream tracks
+                    mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                }
+            }
+
+            function simulateLoading() {
+                responsePlaceholder.style.display = 'block';
+                responseContent.style.display = 'none';
+                
+                const responseCard = document.getElementById('response-card');
+                // Add loading indicator in response placeholder
+                responsePlaceholder.innerHTML = `
+                    <div class="loading-icon">
+                        <div class="loading-circle"></div>
+                    </div>
+                    <p class="response-text">Preparando sua mensagem de conforto espiritual...</p>
+                `;
+                
+                // Scroll to response card
+                responseCard.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            function displayResponse(text) {
+                // Format the response text
+                const formattedText = text.split('\n\n')
+                    .map(paragraph => `<p class="mb-3">${paragraph}</p>`)
+                    .join('');
+                
+                responseMessage.innerHTML = formattedText;
+                responsePlaceholder.style.display = 'none';
+                responseContent.style.display = 'block';
+                
+                // Animate the response appearing
+                gsap.from(responseContent, {
+                    opacity: 0,
+                    y: 20,
+                    duration: 0.5,
+                    ease: "power2.out"
+                });
+            }
+            
+            // GSAP animations for floating shapes
+            gsap.to(".shape-1", {
+                duration: 15,
+                y: 20,
+                x: -20,
+                rotation: 5,
+                repeat: -1,
+                yoyo: true,
+                ease: "sine.inOut"
+            });
+            
+            gsap.to(".shape-2", {
+                duration: 12,
+                y: -30,
+                x: 20,
+                rotation: -7,
+                repeat: -1,
+                yoyo: true,
+                ease: "sine.inOut"
+            });
+            
+            gsap.to(".shape-3", {
+                duration: 18,
+                y: -15,
+                x: -15,
+                rotation: 10,
+                repeat: -1,
+                yoyo: true,
+                ease: "sine.inOut"
+            });
+            
+            gsap.to(".shape-4", {
+                duration: 14,
+                y: 25,
+                x: 10,
+                rotation: -5,
+                repeat: -1,
+                yoyo: true,
+                ease: "sine.inOut"
+            });
+        });
+    </script>
+</body>
+</html>
