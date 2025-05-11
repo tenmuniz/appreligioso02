@@ -6,6 +6,13 @@ const { OpenAI } = require('openai');
 const cors = require('cors');
 require('dotenv').config();
 
+// Logs para debug na Vercel
+console.log('Inicializando aplicação...');
+console.log('Ambiente:', process.env.NODE_ENV);
+console.log('Chave OpenAI definida:', process.env.OPENAI_API_KEY ? 'Sim' : 'Não');
+console.log('Porta:', process.env.PORT);
+console.log('Diretório atual:', __dirname);
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -39,7 +46,17 @@ if (!fs.existsSync(audioDirPath)) {
 // Configuração de Middleware
 app.use(express.json());
 app.use(express.static(publicPath));
-app.use(cors());
+app.use(cors({
+  origin: '*', // Permite todas as origens em desenvolvimento
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Log de requisições para debug
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`);
+  next();
+});
 
 // Configuração do Multer para upload de arquivos de áudio
 const storage = multer.diskStorage({
@@ -120,6 +137,8 @@ async function gerarAudio(texto) {
 app.post('/enviar-texto', async (req, res) => {
   try {
     console.log('Recebida requisição de texto');
+    console.log('Body:', req.body);
+    
     const { mensagem } = req.body;
     
     if (!mensagem) {
@@ -128,19 +147,33 @@ app.post('/enviar-texto', async (req, res) => {
     }
 
     console.log('Processando mensagem de texto:', mensagem);
-    const respostaEspiritual = await gerarRespostaEspiritual(mensagem);
-    const arquivoAudio = await gerarAudio(respostaEspiritual);
+    
+    try {
+      const respostaEspiritual = await gerarRespostaEspiritual(mensagem);
+      console.log('Resposta espiritual gerada com sucesso');
+      
+      const arquivoAudio = await gerarAudio(respostaEspiritual);
+      console.log('Áudio gerado com sucesso:', arquivoAudio);
 
-    console.log('Resposta gerada com sucesso');
-    res.json({
-      mensagem: respostaEspiritual,
-      audio: arquivoAudio
-    });
+      console.log('Resposta completa gerada com sucesso');
+      res.json({
+        mensagem: respostaEspiritual,
+        audio: arquivoAudio
+      });
+    } catch (innerError) {
+      console.error('Erro específico:', innerError);
+      res.status(500).json({ 
+        erro: 'Erro ao processar a mensagem',
+        detalhes: innerError.message,
+        stack: innerError.stack
+      });
+    }
   } catch (error) {
-    console.error('Erro no processamento de texto:', error);
+    console.error('Erro geral no processamento de texto:', error);
     res.status(500).json({ 
       erro: 'Erro ao processar a mensagem',
-      detalhes: error.message 
+      detalhes: error.message,
+      stack: error.stack
     });
   }
 });
@@ -196,6 +229,23 @@ app.post('/enviar-audio', upload.single('arquivo'), async (req, res) => {
   } catch (error) {
     console.error('Erro geral no processamento de áudio:', error);
     res.status(500).json({ erro: 'Erro interno do servidor', detalhes: error.message });
+  }
+});
+
+// Rota para acessar arquivos de áudio
+app.get('/audio/:filename', (req, res) => {
+  const filename = req.params.filename;
+  const filepath = path.join(audioDirPath, filename);
+  
+  console.log(`Requisição de arquivo de áudio: ${filename}`);
+  console.log(`Caminho completo: ${filepath}`);
+  
+  if (fs.existsSync(filepath)) {
+    console.log('Arquivo encontrado, enviando...');
+    res.sendFile(filepath);
+  } else {
+    console.log('Arquivo não encontrado');
+    res.status(404).send('Arquivo não encontrado');
   }
 });
 

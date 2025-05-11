@@ -8,6 +8,20 @@
   ],
   "routes": [
     {
+      "src": "/enviar-texto",
+      "dest": "app.js",
+      "methods": ["POST", "OPTIONS"]
+    },
+    {
+      "src": "/enviar-audio",
+      "dest": "app.js",
+      "methods": ["POST", "OPTIONS"]
+    },
+    {
+      "src": "/audio/(.*)",
+      "dest": "/public/audio/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "/app.js"
     }

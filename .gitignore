@@ -26,3 +26,6 @@ Thumbs.db
 
 # Diretório build da Vercel
 .vercel/
+
+# Diretório de app antigo
+meu-app-oracao/
