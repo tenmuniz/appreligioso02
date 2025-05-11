@@ -12,6 +12,11 @@
   ],
   "routes": [
     {
+      "src": "/status",
+      "dest": "app.mjs",
+      "methods": ["GET"]
+    },
+    {
       "src": "/enviar-texto",
       "dest": "app.mjs",
       "methods": ["POST", "OPTIONS"]
@@ -30,7 +35,7 @@
       "dest": "/public/js/$1"
     },
     {
-      "src": "/(.*\\.(js|css|png|jpg|gif|svg|ico)$)",
+      "src": "/(.*\\.(js|css|png|jpg|gif|svg|ico|mp3)$)",
       "dest": "/public/$1"
     },
     {
