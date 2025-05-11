@@ -107,32 +107,92 @@ const upload = multer({
   }
 });
 
-// Função para gerar resposta espiritual usando GPT-4
+// Função para gerar resposta espiritual usando OpenAI
 async function gerarRespostaEspiritual(mensagem) {
   try {
     console.log('Gerando resposta espiritual para:', mensagem.substring(0, 50) + '...');
+    console.log('Usando modelo: gpt-4o (tentativa 1)');
+    console.log('Chave API configurada:', process.env.OPENAI_API_KEY ? 'Sim (primeiros 5 caracteres: ' + process.env.OPENAI_API_KEY.substring(0, 5) + '...)' : 'Não');
     
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        {
-          role: "system",
-          content: "Você é um conselheiro espiritual compassivo e acolhedor. Sua missão é oferecer conforto, orientação espiritual, e esperança para pessoas que estão passando por dificuldades ou angústias. Responda sempre com empatia, sabedoria e compaixão. Sua resposta deve reconhecer o sofrimento da pessoa, oferecer palavras de encorajamento baseadas na fé, e terminar com uma oração personalizada que traga conforto e esperança. Use uma linguagem acolhedora e calorosa."
-        },
-        {
-          role: "user",
-          content: mensagem
-        }
-      ],
-      max_tokens: 500,
-      temperature: 0.7,
-    });
-
-    return completion.choices[0].message.content;
+    // Tentar usar a API com timeout para diagnóstico
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Timeout ao chamar a API OpenAI (30s)')), 30000)
+    );
+    
+    // Tentar primeiro com GPT-4o (mais recente)
+    try {
+      const apiPromise = openai.chat.completions.create({
+        model: "gpt-4o",  // Tentar o modelo mais recente primeiro
+        messages: [
+          {
+            role: "system",
+            content: "Você é um conselheiro espiritual compassivo e acolhedor. Sua missão é oferecer conforto, orientação espiritual, e esperança para pessoas que estão passando por dificuldades ou angústias. Responda sempre com empatia, sabedoria e compaixão. Sua resposta deve reconhecer o sofrimento da pessoa, oferecer palavras de encorajamento baseadas na fé, e terminar com uma oração personalizada que traga conforto e esperança. Use uma linguagem acolhedora e calorosa."
+          },
+          {
+            role: "user",
+            content: mensagem
+          }
+        ],
+        max_tokens: 500,
+        temperature: 0.7,
+      });
+      
+      const completion = await Promise.race([apiPromise, timeoutPromise]);
+      console.log('Resposta da API recebida com sucesso (gpt-4o)');
+      return completion.choices[0].message.content;
+    } catch (gpt4oError) {
+      // Se GPT-4o falhar, tentar GPT-4
+      console.error('Erro ao usar gpt-4o, tentando gpt-4:', gpt4oError.message);
+      
+      try {
+        const gpt4Response = await openai.chat.completions.create({
+          model: "gpt-4",
+          messages: [
+            {
+              role: "system",
+              content: "Você é um conselheiro espiritual compassivo. Ofereça conforto espiritual. Termine com uma oração."
+            },
+            {
+              role: "user",
+              content: mensagem
+            }
+          ],
+          max_tokens: 400,
+          temperature: 0.7,
+        });
+        
+        console.log('Resposta da API recebida com sucesso (gpt-4)');
+        return gpt4Response.choices[0].message.content;
+      } catch (gpt4Error) {
+        console.error('Erro ao usar gpt-4, tentando alternativas:', gpt4Error.message);
+        // Deixar a próxima função lidar com alternativas
+        throw gpt4Error;
+      }
+    }
   } catch (error) {
-    console.error('Erro ao gerar resposta espiritual:', error);
-    // Tratamento de fallback para contornar problemas com a API
-    if (error.message.includes('API')) {
+    // Log detalhado do erro
+    console.error('=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=');
+    console.error('ERRO DETALHADO AO CHAMAR API OPENAI:');
+    console.error('Tipo de erro:', error.constructor.name);
+    console.error('Mensagem:', error.message);
+    console.error('Status HTTP (se aplicável):', error.status || 'N/A');
+    console.error('Tipo de erro da OpenAI (se aplicável):', error.type || 'N/A');
+    
+    if (error.response) {
+      console.error('Resposta da API:', JSON.stringify(error.response, null, 2));
+    }
+    
+    console.error('Stack trace:', error.stack);
+    console.error('=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=');
+    
+    // Tratamento de fallback
+    if (error.message.includes('API') || 
+        error.message.includes('Timeout') || 
+        error.message.includes('token') ||
+        error.message.includes('rate') ||
+        error.message.includes('access') ||
+        error.message.includes('permission') ||
+        error.message.includes('quota')) {
       return `Não foi possível gerar uma resposta personalizada neste momento. Mas lembre-se: os momentos difíceis são oportunidades para crescimento espiritual. A fé nos fortalece e nos guia mesmo nas situações mais desafiadoras. Mantenha sua esperança e busque apoio na oração.\n\nOração: Que a paz divina esteja com você, que encontre força em sua fé, e que seja guiado com sabedoria para superar seus desafios. Amém.`;
     }
     throw error;
@@ -211,14 +271,24 @@ app.post('/enviar-texto', async (req, res) => {
       return res.status(400).json({ erro: 'Mensagem não fornecida' });
     }
 
-    // Usar API OpenAI ou resposta de fallback
+    // Usar API OpenAI com GPT-4 ou alternativas
     let respostaEspiritual;
+    
+    // Tentar GPT-4 primeiro
     try {
       respostaEspiritual = await gerarRespostaEspiritual(mensagem);
-      console.log('Resposta espiritual gerada com sucesso');
-    } catch (gptError) {
-      console.error('Erro ao gerar resposta via GPT:', gptError);
-      respostaEspiritual = `Resposta para: "${mensagem}" (Não foi possível gerar uma resposta personalizada)`;
+      console.log('Resposta espiritual gerada com sucesso via GPT-4');
+    } catch (gpt4Error) {
+      console.error('Erro ao usar GPT-4, tentando GPT-3.5:', gpt4Error.message);
+      
+      // Tentar GPT-3.5-turbo como fallback
+      try {
+        respostaEspiritual = await gerarRespostaAlternativa(mensagem, "gpt-3.5-turbo");
+        console.log('Resposta espiritual gerada com sucesso via GPT-3.5');
+      } catch (gpt35Error) {
+        console.error('Erro com modelos GPT, usando resposta genérica:', gpt35Error.message);
+        respostaEspiritual = `Resposta para: "${mensagem}" (Não foi possível gerar uma resposta personalizada)`;
+      }
     }
     
     // Gerar áudio (com tentativa de usar API ou fallback)
@@ -237,6 +307,62 @@ app.post('/enviar-texto', async (req, res) => {
     });
   }
 });
+
+// Função alternativa para usar modelos mais acessíveis
+async function gerarRespostaAlternativa(mensagem, modelo) {
+  try {
+    console.log(`Tentando gerar resposta com modelo alternativo: ${modelo}`);
+    
+    // Usar um prompt mais simples para modelos mais básicos
+    const completion = await openai.chat.completions.create({
+      model: modelo,
+      messages: [
+        {
+          role: "system",
+          content: "Você é um conselheiro espiritual acolhedor. Ofereça conforto e esperança para a mensagem do usuário. Termine com uma oração curta e personalizada."
+        },
+        {
+          role: "user",
+          content: mensagem
+        }
+      ],
+      max_tokens: 300,  // Reduzir para economizar tokens
+      temperature: 0.7,
+    });
+
+    return completion.choices[0].message.content;
+  } catch (error) {
+    console.error(`Erro ao usar modelo alternativo ${modelo}:`, error.message);
+    
+    // Tente o modelo mais básico disponível se o alternativo falhar
+    if (modelo !== "gpt-3.5-turbo") {
+      try {
+        console.log("Tentando último recurso com modelo gpt-3.5-turbo");
+        const lastResort = await openai.chat.completions.create({
+          model: "gpt-3.5-turbo",
+          messages: [
+            {
+              role: "system", 
+              content: "Você é um conselheiro espiritual. Responda brevemente com palavras de conforto."
+            },
+            {
+              role: "user",
+              content: mensagem
+            }
+          ],
+          max_tokens: 150,
+          temperature: 0.7,
+        });
+        return lastResort.choices[0].message.content;
+      } catch (finalError) {
+        console.error("Erro no último recurso:", finalError.message);
+        throw error; // Propagar erro original se o último recurso também falhar
+      }
+    } else {
+      throw error;
+    }
+  }
+}
 
 // Endpoint para processar áudio
 app.post('/enviar-audio', upload.single('arquivo'), async (req, res) => {
